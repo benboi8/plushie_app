@@ -11,7 +11,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class Item(Base):
-    __tablename__ = "items"
+    __tablename__ = "plush"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
@@ -25,6 +25,6 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/items/")
+@app.get("/plush/")
 def read_items(db: Session = Depends(get_db)):
     return db.query(Item).all()
