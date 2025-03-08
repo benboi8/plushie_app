@@ -28,10 +28,8 @@ def get_db():
 
 
 def search(search_terms: dict, db: Session):
-    print(type(search_terms))
-    print(search_terms)
     # process search_terms
-    if search_terms != dict:
+    if type(search_terms) != dict:
         return ["Search Terms not a Dict"]
     
     name = search_terms["name"]
