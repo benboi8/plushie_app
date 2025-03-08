@@ -27,8 +27,14 @@ def get_db():
         db.close()
 
 
-def search(search_terms: str, db: Session):
-    results = db.query(Item).filter(Item.name.contains(search_terms)).all()
+def search(search_terms: dict, db: Session):
+    # process search_terms
+    if search_terms != dict:
+        return ["Search Terms not a Dict"]
+    
+    name = search_terms["name"]
+
+    results = db.query (Item).filter(Item.name.contains(name)).all()
     if results:
         return results
     return []
