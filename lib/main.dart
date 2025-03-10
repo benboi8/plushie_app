@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plushie_app/nfc_reader.dart';
+import 'package:plushie_app/nfc_writer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,13 +33,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text("Home Page"),
+      ),
       body: NfcReader(),
       floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            //  Make a new record to write to NFC tag
-            //  navigate to new page to fill in details then confirm and write to tag
-          }
+        child: Icon(
+          Icons.add
+        ),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const NfcWriter()),
+          );
+        }
       ),
     );
   }

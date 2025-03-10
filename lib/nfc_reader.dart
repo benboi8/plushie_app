@@ -44,6 +44,7 @@ class _NfcReaderState extends State<NfcReader> {
 
         for (NdefRecord record in ndef.cachedMessage!.records) {
           payloads.add(utf8.decode(record.payload));
+          // todo: process data
         }
 
         setState(() {
@@ -61,11 +62,8 @@ class _NfcReaderState extends State<NfcReader> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
+    return Center(
         child: Text(message),
-      ),
     );
   }
 }
