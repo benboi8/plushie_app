@@ -18,7 +18,7 @@ void main() {
           if (ndef != null) {
             NdefMessage message = await ndef.read();
             for (var record in message.records) {
-              NfcReader.instance.process(String.fromCharCodes(record.payload));
+              NfcReader.instance.process(record);
             }
             NfcManager.instance.stopSession();
           }
@@ -60,24 +60,32 @@ class _HomePageState extends State<HomePage> {
         future: NfcManager.instance.isAvailable(),
         builder: (context, ss) => ss.data != true
         ? Center(child: Text("NfcManager.isAvailable(): ${ss.data}"))
-        : ListView(
-          children: [
-                ValueListenableBuilder<dynamic>(
-                  valueListenable: NfcReader.instance.processedPayloads,
-                  builder: (context, value, _) =>
-                    Center(
-                      child: SizedBox(
-                        width: double.infinity, // Makes it take the full row width
-                        child: Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text('${value ?? ''}', textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
-                    ),
-                ),
-          ],
+        : StreamBuilder<Map<String, dynamic>>(
+          stream: NfcReader.instance.processedPayloads,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return Text("Waiting for NFC...");
+            return ListView.builder(
+              itemBuilder: (context, index) {
+                if (index >= snapshot.data!.length) {
+                  return null;
+                }
+                return Card(
+                  child: ListTile(
+                    title: Text(
+                        snapshot.data?.keys.elementAtOrNull(index)
+                            ?.replaceRange(0, 1, snapshot.data!.keys.elementAtOrNull(index)![0].toUpperCase())
+                            .replaceAll("_", " ")
+                            ?? "",
+                        style: TextStyle(fontSize: 20)),
+                    trailing: Text(
+                        snapshot.data?.values.elementAtOrNull(index)
+                            ?.replaceRange(0, 1, snapshot.data!.values.elementAtOrNull(index)![0].toUpperCase())
+                            ?? "", style: TextStyle(fontSize: 20))
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(

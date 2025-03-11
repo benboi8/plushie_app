@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:plushie_app/image_picker_page.dart';
 import 'tag_record.dart';
 
 class NfcWriterWidget extends StatefulWidget {
@@ -12,13 +13,6 @@ class NfcWriterWidget extends StatefulWidget {
 }
 
 class _NfcWriterWidgetState extends State<NfcWriterWidget> {
-  ValueNotifier<dynamic> result = ValueNotifier(null);
-
-  String name = "default";
-  String origin = "default";
-  String gender = "default";
-  String color = "default";
-  String personalityType = "default";
 
   bool isDialogOpen = false;
 
@@ -31,55 +25,57 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
         Navigator.of(context).pop();
 
         if (ndef == null || !ndef.isWritable) {
-          result.value = 'Tag is not ndef writable';
-          NfcManager.instance.stopSession(errorMessage: result.value);
+          NfcManager.instance.stopSession(errorMessage: 'Tag is not ndef writable');
           return;
         }
 
-        TagRecord tagRecord = TagRecord(name, origin, gender, color, personalityType);
         NdefMessage message = NdefMessage([
           NdefRecord.createExternal(
-              "com.example.plushie_app",
-              "launch",
-              Uint8List.fromList(tagRecord.json.codeUnits)),
+            "com.example.plushie_app",
+            "launch",
+            Uint8List.fromList(TagRecord.json.codeUnits),
+          ),
         ]);
 
         try {
           await ndef.write(message);
-          result.value = 'Success writing new tag';
           NfcManager.instance.stopSession();
           if (context.mounted) {
             Navigator.of(context).pop();
           }
         } catch (e) {
-          result.value = "Failed to write new tag. Please try again";
           debugPrint(e.toString());
-          NfcManager.instance.stopSession(errorMessage: result.value.toString());
+          NfcManager.instance.stopSession(
+            errorMessage: "Failed to write new tag. Please try again",
+          );
           return;
         }
-    });
+      },
+    );
   }
 
   void showWriteAlertDialog(BuildContext context) {
     isDialogOpen = true;
     showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing by tapping outside
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Scan NFC Tag"),
-            content: Text("Scan the NFC Tag you want to associate with this data."),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    isDialogOpen = false;
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("Cancel")
-              )
-            ],
-          );
-        }
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Scan NFC Tag"),
+          content: Text(
+            "Scan the NFC Tag you want to associate with this data.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                isDialogOpen = false;
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancel"),
+            ),
+          ],
+        );
+      },
     );
 
     write(context);
@@ -93,107 +89,162 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Writer"),
-      ),
+      appBar: AppBar(title: Text("Writer")),
       body: SafeArea(
         child: FutureBuilder<bool>(
           future: NfcManager.instance.isAvailable(),
-          builder: (context, ss) => ss.data != true
-            ? Center(child: Text("NfcManager.isAvailable(): ${ss.data}"))
-            : ListView(
-              children: [
-                ValueListenableBuilder<dynamic>(
-                  valueListenable: result,
-                  builder: (context, value, _) =>
-                    Center(
-                      child: SizedBox(
-                        width: double.infinity, // Makes it take the full row width
-                        child: Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text('${value ?? ''}', textAlign: TextAlign.center),
+          builder:
+              (context, ss) =>
+                  ss.data != true
+                      ? Center(
+                        child: Text("NfcManager.isAvailable(): ${ss.data}"),
+                      )
+                      : ListView(
+                        children: [
+                          // Name
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Name:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: TextFormField(
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          TagRecord.name = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Profile Picture:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(builder: (context) => const ImagePickerPage()),
+                                          );
+                                        },
+                                        child: Text("Pick Image")
+                                    ),
+                                    // child: ImagePickerWidget()
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Origin
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Origin:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: TextFormField(
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          TagRecord.origin = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Gender
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Gender:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: TextFormField(
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          TagRecord.gender = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Color
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Color:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: TextFormField(
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          TagRecord.color = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Personality Type
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: Text("Personality Type:"),
+                                  trailing: SizedBox(
+                                    width: 200,
+                                    child: TextFormField(
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          TagRecord.personalityType = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Submit
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  showWriteAlertDialog(context);
+                                });
+                              },
+                              child: Text("Submit"),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                ),
-
-                // Name
-                ListTile(
-                  title: Text("Name:"),
-                ),
-                TextFormField(
-                  onChanged: (newValue) {
-                    setState(() {
-                      name = newValue;
-                    });
-                  },
-                ),
-
-                // Origin
-                ListTile(
-                  title: Text("Origin:"),
-                ),
-                TextFormField(
-                  onChanged: (newValue) {
-                    setState(() {
-                      origin = newValue;
-                    });
-                  },
-                ),
-
-                // Gender
-                ListTile(
-                  title: Text("Gender:"),
-                ),
-                TextFormField(
-                  onChanged: (newValue) {
-                    setState(() {
-                      gender = newValue;
-                    });
-                  },
-                ),
-
-                // Color
-                ListTile(
-                  title: Text("Color:"),
-                ),
-                TextFormField(
-                  onChanged: (newValue) {
-                    setState(() {
-                      color = newValue;
-                    });
-                  },
-                ),
-
-                // Personality Type
-                ListTile(
-                  title: Text("Personality Type:"),
-                ),
-                TextFormField(
-                  onChanged: (newValue) {
-                    setState(() {
-                      personalityType = newValue;
-                    });
-                  },
-                ),
-
-                // Submit
-                ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        showWriteAlertDialog(context);
-                      });
-                    },
-                    child: Text("Submit")
-                )
-              ],
-            ),
         ),
-      )
+      ),
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
@@ -57,7 +55,7 @@ class _NfcReaderWidgetState extends State<NfcReaderWidget> {
         }
 
         for (NdefRecord record in ndef.cachedMessage!.records) {
-          NfcReader.instance.process(String.fromCharCodes(record.payload));
+          NfcReader.instance.process(record);
         }
 
         NfcManager.instance.stopSession();

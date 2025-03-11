@@ -1,12 +1,16 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:nfc_manager/nfc_manager.dart';
 
 class NfcReader {
   static NfcReader instance = NfcReader();
-  ValueNotifier<String> _processedPayloads = ValueNotifier("");
+  final StreamController<Map<String, dynamic>> _streamController = StreamController.broadcast();
 
-  void process(String payload) {
-    _processedPayloads = ValueNotifier(_processedPayloads.value + payload);
+  Stream<Map<String, dynamic>> get processedPayloads => _streamController.stream;
+
+  void process(NdefRecord record) {
+    String payload = String.fromCharCodes(record.payload);
+    _streamController.add(jsonDecode(payload));
   }
-
-  ValueNotifier<String> get processedPayloads => _processedPayloads;
 }

@@ -1,11 +1,43 @@
 class TagRecord {
-  late String name;
-  late String origin;
-  late String gender;
-  late String color;
-  late String personalityType;
+  static late String _name;
 
-  TagRecord(this.name, this.origin, this.gender, this.color, this.personalityType);
+  static set name(String value) {
+    _name = value;
+  }
 
-  String get json => '{"name": $name, "origin": $origin, "gender": $gender, "color": $color, "personality_type": $personalityType}';
+  static late Uri _profilePictureUrl;
+
+  static set profilePictureUrl(String value) {
+    _profilePictureUrl = _profilePictureUrl = Uri(
+      scheme: "https",
+      host: "192.168.7.127",
+      path: value
+    );
+  }
+
+  static late String _origin;
+
+  static set origin(String value) {
+    _origin = value;
+  }
+
+  static late String _gender;
+
+  static set gender(String value) {
+    _gender = value;
+  }
+
+  static late String _color;
+
+  static set color(String value) {
+    _color = value;
+  }
+
+  static late String _personalityType;
+
+  static set personalityType(String value) {
+    _personalityType = value;
+  }
+
+  static String get json => '{"name": "$_name", "profilePictureUrl": "$_profilePictureUrl", "origin": "$_origin", "gender": "$_gender", "color": "$_color", "personality_type": "$_personalityType"}';
 }
