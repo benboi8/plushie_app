@@ -8,10 +8,12 @@
         android:label="plushie_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
         <activity
+            android:enableOnBackInvokedCallback="true"
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -28,6 +30,11 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="vnd.android.nfc" android:host="ext" android:pathPrefix="/com.example.plushie_app"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
