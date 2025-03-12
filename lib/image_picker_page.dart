@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plushie_app/tag_record.dart';
+import 'package:plushie_app/web_manager.dart';
 
 class ImagePickerPage extends StatefulWidget {
   const ImagePickerPage({super.key});
@@ -176,6 +177,7 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
               child: FloatingActionButton(
                   onPressed: () {
                   TagRecord.profilePictureUrl = _mediaFile!.path.toString();
+                  WebManager().uploadImage(_mediaFile!);
                   Navigator.of(context).pop();
                   },
                 shape: CircleBorder(),

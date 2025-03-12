@@ -13,4 +13,19 @@ class NfcReader {
     String payload = String.fromCharCodes(record.payload);
     _streamController.add(jsonDecode(payload));
   }
+
+  void startScan() {
+    NfcManager.instance.startSession(
+      onDiscovered: (NfcTag tag) async {
+        final ndef = Ndef.from(tag);
+        if (ndef != null) {
+          NdefMessage message = await ndef.read();
+          for (var record in message.records) {
+            instance.process(record);
+          }
+          // NfcManager.instance.stopSession();
+        }
+      }
+    );
+  }
 }

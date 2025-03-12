@@ -8,23 +8,12 @@ import 'nfc_writer_widget.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
-
   // If the app was launched via NFC, process the tag
   if (Platform.isAndroid) {
-    NfcManager.instance.startSession(
-        onDiscovered: (NfcTag tag) async {
-          final ndef = Ndef.from(tag);
-          if (ndef != null) {
-            NdefMessage message = await ndef.read();
-            for (var record in message.records) {
-              NfcReader.instance.process(record);
-            }
-            NfcManager.instance.stopSession();
-          }
-        }
-    );
+    NfcReader.instance.startScan();
   }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -69,17 +58,38 @@ class _HomePageState extends State<HomePage> {
                 if (index >= snapshot.data!.length) {
                   return null;
                 }
+                var keys = snapshot.data!.keys;
+                var values = snapshot.data!.values;
+
+                String title = keys.elementAtOrNull(index)
+                            ?.replaceRange(0, 1, keys.elementAtOrNull(index)![0].toUpperCase())
+                            .replaceAll("_", " ")
+                            ?? "";
+
+                if (keys.elementAt(index).toLowerCase().contains("url")) {
+                  print(values.elementAt(index));
+                  return Card(
+                    child: ListTile(
+                      title: Text(title, style: TextStyle(fontSize: 20)),
+                      trailing: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Image.network(
+                          values.elementAt(index),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Text("Image not found"),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
                 return Card(
                   child: ListTile(
-                    title: Text(
-                        snapshot.data?.keys.elementAtOrNull(index)
-                            ?.replaceRange(0, 1, snapshot.data!.keys.elementAtOrNull(index)![0].toUpperCase())
-                            .replaceAll("_", " ")
-                            ?? "",
-                        style: TextStyle(fontSize: 20)),
+                    title: Text(title, style: TextStyle(fontSize: 20)),
                     trailing: Text(
-                        snapshot.data?.values.elementAtOrNull(index)
-                            ?.replaceRange(0, 1, snapshot.data!.values.elementAtOrNull(index)![0].toUpperCase())
+                        values.elementAtOrNull(index)
+                            ?.replaceRange(0, 1, values.elementAtOrNull(index)![0].toUpperCase())
                             ?? "", style: TextStyle(fontSize: 20))
                   ),
                 );
