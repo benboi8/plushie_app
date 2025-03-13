@@ -1,5 +1,9 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:plushie_app/tag_record.dart';
 
 class WebManager {
   final serverUrl = "http://192.168.7.127/uploads/upload.php";
@@ -16,16 +20,20 @@ class WebManager {
 
     var response = await request.send();
 
-    String? uploadedImageUrl;
-
     if (response.statusCode == 200) {
       final res = await http.Response.fromStream(response);
 
-      uploadedImageUrl = res.body.contains("http") ? res.body : null;
+      var uploadedUrl = jsonDecode(res.body)["url"];
 
-      print("Upload Success: $uploadedImageUrl");
+      TagRecord.profilePictureUrl = uploadedUrl;
+
+      if (kDebugMode) {
+        print("Upload Success: $uploadedUrl");
+      }
     } else {
-      print("Upload Failed");
+      if (kDebugMode) {
+        print("Upload Failed");
+      }
     }
   }
 }

@@ -1,43 +1,19 @@
 class TagRecord {
-  static late String _name;
+  static String? name;
+  static String? profilePictureUrl;
+  static String? origin;
+  static String? gender;
+  static String? color;
+  static String? personalityType;
 
-  static set name(String value) {
-    _name = value;
+  static void reset() {
+    name = null;
+    profilePictureUrl = null;
+    origin = null;
+    gender = null;
+    color = null;
+    personalityType = null;
   }
 
-  static late Uri _profilePictureUrl;
-
-  static set profilePictureUrl(String value) {
-    _profilePictureUrl = _profilePictureUrl = Uri(
-      scheme: "https",
-      host: "192.168.7.127",
-      path: value
-    );
-  }
-
-  static late String _origin;
-
-  static set origin(String value) {
-    _origin = value;
-  }
-
-  static late String _gender;
-
-  static set gender(String value) {
-    _gender = value;
-  }
-
-  static late String _color;
-
-  static set color(String value) {
-    _color = value;
-  }
-
-  static late String _personalityType;
-
-  static set personalityType(String value) {
-    _personalityType = value;
-  }
-
-  static String get json => '{"name": "$_name", "profilePictureUrl": "$_profilePictureUrl", "origin": "$_origin", "gender": "$_gender", "color": "$_color", "personality_type": "$_personalityType"}';
+  static String get json => '{"name": "$name", "profilePictureUrl": "$profilePictureUrl", "origin": "$origin", "gender": "$gender", "color": "$color", "personality_type": "$personalityType"}';
 }

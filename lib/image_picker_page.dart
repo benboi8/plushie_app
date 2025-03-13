@@ -1,8 +1,11 @@
+// TODO: Allow an offset to be used for the profile picture circle
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:plushie_app/style.dart';
 import 'package:plushie_app/tag_record.dart';
 import 'package:plushie_app/web_manager.dart';
 
@@ -32,20 +35,29 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
       return retrieveError;
     }
     if (_mediaFile != null) {
-      return Semantics(
+      return Stack(
+        children: [
+          Semantics(
             label: 'image_picker_example_picked_image',
-            child: kIsWeb
-                ? Image.network(_mediaFile!.path)
-                : Image.file(
-                        File(_mediaFile!.path),
-                        errorBuilder: (BuildContext context, Object error,
-                            StackTrace? stackTrace) {
-                          return const Center(
-                              child:
-                                  Text('This image type is not supported'));
-                        },
-                      ),
-          );
+            child:
+                kIsWeb
+                    ? Image.network(_mediaFile!.path)
+                    : Image.file(
+                      File(_mediaFile!.path),
+                      errorBuilder: (
+                        BuildContext context,
+                        Object error,
+                        StackTrace? stackTrace,
+                      ) {
+                        return const Center(
+                          child: Text('This image type is not supported'),
+                        );
+                      },
+                    ),
+          ),
+          Positioned.fill(child: CustomPaint(painter: OverlayPainterCircle())),
+        ],
+      );
     } else if (_pickImageError != null) {
       return Text(
         'Pick image error: $_pickImageError',
@@ -65,86 +77,88 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
       return;
     }
     if (response.file != null) {
-        setState(() {
-          if (response.file == null) {
-            _setImageFileListFromFile(response.file);
-          } else {
-            _mediaFile = response.file;
-          }
-        });
+      setState(() {
+        if (response.file == null) {
+          _setImageFileListFromFile(response.file);
+        } else {
+          _mediaFile = response.file;
+        }
+      });
     } else {
       _retrieveDataError = response.exception!.code;
     }
   }
 
-   Future<void> _onImageButtonPressed(
+  Future<void> _onImageButtonPressed(
     ImageSource source, {
     required BuildContext context,
     bool isMedia = false,
   }) async {
     if (context.mounted) {
-        if (isMedia) {
-            try {
-              final XFile? media = await _picker.pickMedia();
-                setState(() {
-                  _mediaFile = media;
-                });
-            } catch (e) {
-              setState(() {
-                _pickImageError = e;
-              });
-            }
-        } else {
-            try {
-              final XFile? pickedFile = await _picker.pickImage(source: source);
-              setState(() {
-                _setImageFileListFromFile(pickedFile);
-              });
-            } catch (e) {
-              setState(() {
-                _pickImageError = e;
-              });
-            }
+      if (isMedia) {
+        try {
+          final XFile? media = await _picker.pickMedia();
+          setState(() {
+            _mediaFile = media;
+          });
+        } catch (e) {
+          setState(() {
+            _pickImageError = e;
+          });
         }
-     }
-   }
+      } else {
+        try {
+          final XFile? pickedFile = await _picker.pickImage(source: source);
+          setState(() {
+            _setImageFileListFromFile(pickedFile);
+          });
+        } catch (e) {
+          setState(() {
+            _pickImageError = e;
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Image Picker"),
-      ),
+      appBar: AppBar(title: Text("Image Picker")),
       body: Center(
-        child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-            ? FutureBuilder<void>(
-                future: retrieveLostData(),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return const Text(
-                        'You have not yet picked an image.',
-                        textAlign: TextAlign.center,
-                      );
-                    case ConnectionState.done:
-                      return _previewImage();
-                    case ConnectionState.active:
-                      if (snapshot.hasError) {
-                        return Text(
-                          'Pick image error: ${snapshot.error}}',
-                          textAlign: TextAlign.center,
-                        );
-                      } else {
+        child:
+            !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+                ? FutureBuilder<void>(
+                  future: retrieveLostData(),
+                  builder: (
+                    BuildContext context,
+                    AsyncSnapshot<void> snapshot,
+                  ) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                      case ConnectionState.waiting:
                         return const Text(
                           'You have not yet picked an image.',
                           textAlign: TextAlign.center,
                         );
-                      }
-                  }
-                },
-              )
-            : _previewImage(),
+                      case ConnectionState.done:
+                        return _previewImage();
+                      case ConnectionState.active:
+                        if (snapshot.hasError) {
+                          return Text(
+                            'Pick image error: ${snapshot.error}}',
+                            textAlign: TextAlign.center,
+                          );
+                        } else {
+                          return const Text(
+                            'You have not yet picked an image.',
+                            textAlign: TextAlign.center,
+                          );
+                        }
+                    }
+                  },
+                )
+                : _previewImage(),
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -173,20 +187,20 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
               ),
             ),
           Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: FloatingActionButton(
-                  onPressed: () {
-                  TagRecord.profilePictureUrl = _mediaFile!.path.toString();
-                  WebManager().uploadImage(_mediaFile!);
-                  Navigator.of(context).pop();
-                  },
-                shape: CircleBorder(),
-                heroTag: 'confirm',
-                tooltip: 'Confirm',
-                backgroundColor: Colors.green,
-                child: const Icon(Icons.check),
-              )
-          )
+            padding: const EdgeInsets.only(top: 16.0),
+            child: FloatingActionButton(
+              onPressed: () {
+                TagRecord.profilePictureUrl = _mediaFile!.path.toString();
+                WebManager().uploadImage(_mediaFile!);
+                Navigator.of(context).pop();
+              },
+              shape: CircleBorder(),
+              heroTag: 'confirm',
+              tooltip: 'Confirm',
+              backgroundColor: Colors.green,
+              child: const Icon(Icons.check),
+            ),
+          ),
         ],
       ),
     );
@@ -202,5 +216,36 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
   }
 }
 
-typedef OnPickImageCallback = void Function(
-    double? maxWidth, double? maxHeight, int? quality, int? limit);
+typedef OnPickImageCallback =
+    void Function(
+      double? maxWidth,
+      double? maxHeight,
+      int? quality,
+      int? limit,
+    );
+
+// Custom Painter for the Overlay
+class OverlayPainterCircle extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = Colors.black.withOpacity(0.5) // 50% transparent black
+      ..style = PaintingStyle.fill;
+
+    // Define full-screen rectangle
+    Path overlayPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // Define the circular cutout
+    Path circlePath = Path()
+      ..addOval(Rect.fromCircle(center: size.center(Offset.zero), radius: Style.profilePictureRadius));
+
+    // Subtract circle from overlay to make it transparent
+    Path finalPath = Path.combine(PathOperation.difference, overlayPath, circlePath);
+
+    // Draw the final overlay with a transparent circle
+    canvas.drawPath(finalPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}

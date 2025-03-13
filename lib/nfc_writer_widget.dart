@@ -42,12 +42,14 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
           NfcManager.instance.stopSession();
           if (context.mounted) {
             Navigator.of(context).pop();
+            TagRecord.reset();
           }
         } catch (e) {
           debugPrint(e.toString());
           NfcManager.instance.stopSession(
             errorMessage: "Failed to write new tag. Please try again",
           );
+
           return;
         }
       },
@@ -136,7 +138,8 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                                             MaterialPageRoute(builder: (context) => const ImagePickerPage()),
                                           );
                                         },
-                                        child: Text("Pick Image")
+                                        // TODO: Replace with Avatar
+                                        child: TagRecord.profilePictureUrl == null ? Text("Pick Image") : Image.network(TagRecord.profilePictureUrl ?? "")
                                     ),
                                     // child: ImagePickerWidget()
                                   ),
