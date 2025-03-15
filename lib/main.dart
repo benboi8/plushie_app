@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:plushie_app/nfc_reader.dart';
-import 'package:plushie_app/profile_list.dart';
-import 'package:plushie_app/profile_page.dart';
+
+import 'nfc_reader.dart';
 import 'nfc_writer_widget.dart';
+
+import 'style.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,15 +39,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Home Page")),
-      body: ElevatedButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const NfcReader()),
-          );
-        },
-        child: Text("Read NFC Tag"),
+      appBar: AppBar(
+        title: Text("Home Page"),
+        actions: appBarActions(context)
       ),
+      body: NfcReader(),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {

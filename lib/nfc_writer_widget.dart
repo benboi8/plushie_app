@@ -2,8 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-import 'package:plushie_app/image_picker_page.dart';
 import 'tag_record.dart';
+
+import 'image_picker_page.dart';
+import 'style.dart';
 
 class NfcWriterWidget extends StatefulWidget {
   const NfcWriterWidget({super.key});
@@ -92,7 +94,10 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Writer")),
+      appBar: AppBar(
+          title: Text("Writer"),
+        actions: appBarActions(context),
+      ),
       body: SafeArea(
         child: FutureBuilder<bool>(
           future: NfcManager.instance.isAvailable(),

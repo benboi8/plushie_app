@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:plushie_app/profile_page.dart';
+
+import 'profile_page.dart';
 
 class NfcReader extends StatefulWidget {
   const NfcReader({super.key});
@@ -42,16 +43,25 @@ class _NfcReaderState extends State<NfcReader> {
     NfcManager.instance.startSession(
       onDiscovered: (NfcTag tag) async {
         // Extract NFC data
-        Map<String, dynamic> nfcData = tag.data;
+        final ndef = Ndef.from(tag);
+        if (ndef != null) {
+          NdefMessage message = await ndef.read();
 
-        // Stop session
-        NfcManager.instance.stopSession();
+          Map<String, dynamic> nfcData = {};
+          for (var record in message.records) {
+            nfcData.addAll(jsonDecode(String.fromCharCodes(record.payload)));
+          }
 
-        // Navigate to ProfilePage with NFC data
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfilePage(nfcData: nfcData)),
-        );
+          // Stop session
+          NfcManager.instance.stopSession();
+
+          // Navigate to ProfilePage with NFC data
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProfilePage(nfcData: nfcData)),
+          );
+        }
       },
     );
   }
@@ -77,11 +87,8 @@ class _NfcReaderState extends State<NfcReader> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Scan NFC Tag")),
-      body: Center(
+    return Center(
         child: Text("Scan an NFC tag..."),
-      ),
     );
   }
 }

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:plushie_app/style.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'style.dart';
 
 class ProfilePage extends StatefulWidget {
   final Map<String, dynamic> nfcData;
   const ProfilePage({super.key, required this.nfcData});
 
   Map<String, dynamic> _processNfcData(Map<String, dynamic> data) {
-    // TODO: Change data to be the payload like how it is done in nfc_reader, by reading the ndef tag and processing the messages
-
     Map<String, dynamic> processedData = {};
 
     data.forEach((key, value) {
-      print(key.runtimeType);
-      print(value.runtimeType);
       processedData[key] = value;
     });
 
@@ -25,17 +22,16 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final double latitude = 52.2066983;
-  final double longitude = -4.3470603;
+    final double latitude = 52.2066983;
+    final double longitude = -4.3470603;
 
-  Future<void> _openGoogleMaps() async {
+
+  Future<void> _openGoogleMaps(geoData) async {
+    geoData = [latitude, longitude];
+
     final Uri googleMapsUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude");
 
-    if (await canLaunchUrl(googleMapsUri)) {
-      await launchUrl(googleMapsUri);
-    } else {
-      throw 'Could not open Google Maps.';
-    }
+    await launchUrl(googleMapsUri);
   }
 
   @override
@@ -45,18 +41,20 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(processedData["name"], textAlign: TextAlign.center)
+        title: Text(processedData["name"], textAlign: TextAlign.center),
+        actions: appBarActions(context),
       ),
       body: ListView(
         children: [
           CircleAvatar(
             radius: Style.profilePictureRadius,
-            backgroundImage: NetworkImage(processedData["profilePictureUrl"]),
+            foregroundImage: NetworkImage(processedData["profilePictureUrl"]),
+            child: SizedBox(width: 100, height: 100, child: CircularProgressIndicator()),
           ),
           ListTile(
             title: Text("Origin", style: TextStyle(fontSize: 20)),
             trailing: TextButton(
-                onPressed: () => _openGoogleMaps(),
+                onPressed: () => _openGoogleMaps(processedData["geoData"]),
                 child: Text(processedData["origin"], style: TextStyle(fontSize: 20))
             ),
           ),

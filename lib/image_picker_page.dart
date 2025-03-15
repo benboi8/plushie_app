@@ -1,13 +1,14 @@
-// TODO: Allow an offset to be used for the profile picture circle
-
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plushie_app/style.dart';
-import 'package:plushie_app/tag_record.dart';
-import 'package:plushie_app/web_manager.dart';
+
+import 'style.dart';
+import 'tag_record.dart';
+import 'web_manager.dart';
+
+// TODO: Allow an offset to be used for the profile picture circle
 
 class ImagePickerPage extends StatefulWidget {
   const ImagePickerPage({super.key});
@@ -229,7 +230,7 @@ class OverlayPainterCircle extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = Colors.black.withOpacity(0.5) // 50% transparent black
+      ..color = Colors.black.withValues(alpha: 0.5) // 50% transparent black
       ..style = PaintingStyle.fill;
 
     // Define full-screen rectangle

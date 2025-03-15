@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:plushie_app/tag_record.dart';
+
+import 'tag_record.dart';
 
 class WebManager {
   final serverUrl = "http://192.168.7.127/uploads/upload.php";
