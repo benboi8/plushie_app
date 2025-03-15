@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:plushie_app/profile_data.dart';
 
 import 'profile_page.dart';
 
@@ -59,7 +60,7 @@ class _NfcReaderState extends State<NfcReader> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ProfilePage(nfcData: nfcData)),
+                builder: (context) => ProfilePage(profileData: ProfileData.fromNfcData(nfcData))),
           );
         }
       },

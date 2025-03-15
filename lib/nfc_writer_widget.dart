@@ -1,3 +1,5 @@
+//TODO: Use values that are already in the database, if not in database then allow adding a new one
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
