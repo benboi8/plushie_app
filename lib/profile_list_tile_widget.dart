@@ -32,10 +32,10 @@ class _ProfileListTileWidgetState extends State<ProfileListTileWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.profileData.name, style: TextStyle(fontSize: 30)),
-                  Text("Origin: ${widget.profileData.origin}"),
-                  Text("Gender: ${widget.profileData.gender}"),
-                  Text("Color: ${widget.profileData.color}"),
-                  Text("Personality Type: ${widget.profileData.personalityType}"),
+                  Text("Origin: ${widget.profileData.origin.name}"),
+                  Text("Gender: ${widget.profileData.gender.name}"),
+                  Text("Color: ${widget.profileData.color.name}"),
+                  Text("Personality Type: ${widget.profileData.personalityType.name}"),
                 ],
               ),
             ]

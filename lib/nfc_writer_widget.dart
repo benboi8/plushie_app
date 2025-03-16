@@ -1,23 +1,24 @@
-//TODO: Use values that are already in the database, if not in database then allow adding a new one
-
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:plushie_app/database_manager.dart';
+import 'profile_data.dart';
 import 'tag_record.dart';
 
 import 'image_picker_page.dart';
 import 'style.dart';
 
 class NfcWriterWidget extends StatefulWidget {
-  const NfcWriterWidget({super.key});
+  final ProfileData data;
+  const NfcWriterWidget({super.key, required this.data});
 
   @override
   State<NfcWriterWidget> createState() => _NfcWriterWidgetState();
 }
 
 class _NfcWriterWidgetState extends State<NfcWriterWidget> {
-
   bool isDialogOpen = false;
 
   void write(BuildContext context) {
@@ -29,7 +30,9 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
         Navigator.of(context).pop();
 
         if (ndef == null || !ndef.isWritable) {
-          NfcManager.instance.stopSession(errorMessage: 'Tag is not ndef writable');
+          NfcManager.instance.stopSession(
+            errorMessage: 'Tag is not ndef writable',
+          );
           return;
         }
 
@@ -37,7 +40,7 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
           NdefRecord.createExternal(
             "com.example.plushie_app",
             "launch",
-            Uint8List.fromList(TagRecord.json.codeUnits),
+            Uint8List.fromList(widget.data.id.codeUnits),
           ),
         ]);
 
@@ -46,7 +49,6 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
           NfcManager.instance.stopSession();
           if (context.mounted) {
             Navigator.of(context).pop();
-            TagRecord.reset();
           }
         } catch (e) {
           debugPrint(e.toString());
@@ -87,19 +89,54 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
     write(context);
   }
 
+  String selectedOrigin = "";
+  String selectedGender = "";
+  String selectedColor = "";
+  String selectedPersonalityType = "";
+
+  @override
+  void initState() {
+    super.initState();
+
+    getAllowedData();
+    selectedOrigin = widget.data.origin.name;
+    selectedGender = widget.data.gender.name;
+    selectedColor = widget.data.color.name;
+    selectedPersonalityType = widget.data.personalityType.name;
+  }
+
   @override
   void dispose() {
     NfcManager.instance.stopSession();
     super.dispose();
   }
 
+  List<Map<String, dynamic>> originConstraints = [];
+  List<Map<String, dynamic>> genderConstraints = [];
+  List<Map<String, dynamic>> colorConstraints = [];
+  List<Map<String, dynamic>> personalityTypeConstraints = [];
+
+  void getAllowedData() {
+    DatabaseManager().fetchEditingConstraints().then((value) {
+      originConstraints = value["origin"]!;
+      genderConstraints = value["gender"]!;
+      colorConstraints = value["color"]!;
+      personalityTypeConstraints = value["personality_type"]!;
+    });
+  }
+
+  Color pickerColor = Color(0xff443a49);
+  Color currentColor = Color(0xff443a49);
+
+  // ValueChanged<Color> callback
+  void changeColor(Color color) {
+    setState(() => pickerColor = color);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text("Writer"),
-        actions: appBarActions(context),
-      ),
+      appBar: AppBar(title: Text("Writer"), actions: appBarActions(context)),
       body: SafeArea(
         child: FutureBuilder<bool>(
           future: NfcManager.instance.isAvailable(),
@@ -120,6 +157,7 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                                   trailing: SizedBox(
                                     width: 200,
                                     child: TextFormField(
+                                      initialValue: widget.data.name,
                                       onChanged: (newValue) {
                                         setState(() {
                                           TagRecord.name = newValue;
@@ -132,21 +170,30 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                             ),
                           ),
 
+                          // Profile picture
                           Card(
                             child: Column(
                               children: [
                                 ListTile(
                                   title: Text("Profile Picture:"),
                                   trailing: SizedBox(
-                                    width: 200,
-                                    child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(builder: (context) => const ImagePickerPage()),
-                                          );
-                                        },
-                                        // TODO: Replace with Avatar
-                                        child: TagRecord.profilePictureUrl == null ? Text("Pick Image") : Image.network(TagRecord.profilePictureUrl ?? "")
+                                    width: 100,
+                                    child: IconButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const ImagePickerPage(),
+                                          ),
+                                        );
+                                      },
+                                      icon: CircleAvatar(
+                                        radius: Style.profilePictureRadius,
+                                        foregroundImage: NetworkImage(
+                                          widget.data.url,
+                                        ),
+                                      ),
                                     ),
                                     // child: ImagePickerWidget()
                                   ),
@@ -161,15 +208,23 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                               children: [
                                 ListTile(
                                   title: Text("Origin:"),
-                                  trailing: SizedBox(
-                                    width: 200,
-                                    child: TextFormField(
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          TagRecord.origin = newValue;
-                                        });
-                                      },
-                                    ),
+                                  trailing: DropdownButton(
+                                    value: selectedOrigin,
+                                    items:
+                                        originConstraints
+                                            .map(
+                                              (Map<String, dynamic> item) =>
+                                                  DropdownMenuItem(
+                                                    value: item["name"],
+                                                    child: Text(item["name"]),
+                                                  ),
+                                            )
+                                            .toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedOrigin = value.toString();
+                                      });
+                                    },
                                   ),
                                 ),
                               ],
@@ -182,15 +237,23 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                               children: [
                                 ListTile(
                                   title: Text("Gender:"),
-                                  trailing: SizedBox(
-                                    width: 200,
-                                    child: TextFormField(
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          TagRecord.gender = newValue;
-                                        });
-                                      },
-                                    ),
+                                  trailing: DropdownButton(
+                                    value: selectedGender,
+                                    items:
+                                        genderConstraints
+                                            .map(
+                                              (Map<String, dynamic> item) =>
+                                                  DropdownMenuItem(
+                                                    value: item["name"],
+                                                    child: Text(item["name"]),
+                                                  ),
+                                            )
+                                            .toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedGender = value.toString();
+                                      });
+                                    },
                                   ),
                                 ),
                               ],
@@ -202,16 +265,48 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                             child: Column(
                               children: [
                                 ListTile(
-                                  title: Text("Color:"),
-                                  trailing: SizedBox(
-                                    width: 200,
-                                    child: TextFormField(
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          TagRecord.color = newValue;
-                                        });
-                                      },
-                                    ),
+                                  title: Text("Colors:"),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder:
+                                                (context) => AlertDialog(
+                                                  title: const Text(
+                                                    'Pick a color!',
+                                                  ),
+                                                  content: SingleChildScrollView(
+                                                    child: ColorPicker(
+                                                      pickerColor: pickerColor,
+                                                      onColorChanged: changeColor,
+                                                    ),
+                                                  ),
+                                                  actions: <Widget>[
+                                                    ElevatedButton(
+                                                      child: const Text('Select'),
+                                                      onPressed: () {
+                                                        setState(
+                                                          () =>
+                                                              currentColor =
+                                                                  pickerColor,
+                                                        );
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                          );
+                                        },
+                                        icon: Icon(Icons.color_lens),
+                                      ),
+                                      SizedBox(
+                                        width: 25,
+                                        height: 25,
+                                        child: ColoredBox(color: currentColor, child: Text(""),))
+                                    ],
                                   ),
                                 ),
                               ],
@@ -224,15 +319,24 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
                               children: [
                                 ListTile(
                                   title: Text("Personality Type:"),
-                                  trailing: SizedBox(
-                                    width: 200,
-                                    child: TextFormField(
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          TagRecord.personalityType = newValue;
-                                        });
-                                      },
-                                    ),
+                                  trailing: DropdownButton(
+                                    value: selectedPersonalityType,
+                                    items:
+                                        personalityTypeConstraints
+                                            .map(
+                                              (Map<String, dynamic> item) =>
+                                                  DropdownMenuItem(
+                                                    value: item["name"],
+                                                    child: Text(item["name"]),
+                                                  ),
+                                            )
+                                            .toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedPersonalityType =
+                                            value.toString();
+                                      });
+                                    },
                                   ),
                                 ),
                               ],

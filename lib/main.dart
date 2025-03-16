@@ -44,14 +44,6 @@ class _HomePageState extends State<HomePage> {
         actions: appBarActions(context)
       ),
       body: NfcReader(),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const NfcWriterWidget()),
-          );
-        },
-      ),
     );
   }
 }
