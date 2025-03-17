@@ -98,7 +98,6 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
   void initState() {
     super.initState();
 
-    getAllowedData();
     selectedOrigin = widget.data.origin.name;
     selectedGender = widget.data.gender.name;
     selectedColor = widget.data.color.name;
@@ -116,19 +115,9 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
   List<Map<String, dynamic>> colorConstraints = [];
   List<Map<String, dynamic>> personalityTypeConstraints = [];
 
-  void getAllowedData() {
-    DatabaseManager().fetchEditingConstraints().then((value) {
-      originConstraints = value["origin"]!;
-      genderConstraints = value["gender"]!;
-      colorConstraints = value["color"]!;
-      personalityTypeConstraints = value["personality_type"]!;
-    });
-  }
-
   Color pickerColor = Color(0xff443a49);
   Color currentColor = Color(0xff443a49);
 
-  // ValueChanged<Color> callback
   void changeColor(Color color) {
     setState(() => pickerColor = color);
   }
@@ -138,225 +127,255 @@ class _NfcWriterWidgetState extends State<NfcWriterWidget> {
     return Scaffold(
       appBar: AppBar(title: Text("Writer"), actions: appBarActions(context)),
       body: SafeArea(
-        child: FutureBuilder<bool>(
-          future: NfcManager.instance.isAvailable(),
-          builder:
-              (context, ss) =>
-                  ss.data != true
-                      ? Center(
-                        child: Text("NfcManager.isAvailable(): ${ss.data}"),
-                      )
-                      : ListView(
-                        children: [
-                          // Name
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Name:"),
-                                  trailing: SizedBox(
-                                    width: 200,
-                                    child: TextFormField(
-                                      initialValue: widget.data.name,
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          TagRecord.name = newValue;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: DatabaseManager().fetchEditingConstraints(),
+          builder: (context, value) {
+            if (value.data == null) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-                          // Profile picture
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Profile Picture:"),
-                                  trailing: SizedBox(
-                                    width: 100,
-                                    child: IconButton(
-                                      onPressed: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    const ImagePickerPage(),
-                                          ),
-                                        );
-                                      },
-                                      icon: CircleAvatar(
-                                        radius: Style.profilePictureRadius,
-                                        foregroundImage: NetworkImage(
-                                          widget.data.url,
-                                        ),
-                                      ),
-                                    ),
-                                    // child: ImagePickerWidget()
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+            originConstraints = value.data?["origin"]!;
+            genderConstraints = value.data?["gender"]!;
+            colorConstraints = value.data?["color"]!;
+            List<Color> availableColors = [];
+            for (Map<String, dynamic> color in colorConstraints) {
+              availableColors.add(Color(int.parse(color["hex_code"], radix: 16)).withAlpha(255));
+            }
+            personalityTypeConstraints = value.data?["personality_type"]!;
 
-                          // Origin
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Origin:"),
-                                  trailing: DropdownButton(
-                                    value: selectedOrigin,
-                                    items:
-                                        originConstraints
-                                            .map(
-                                              (Map<String, dynamic> item) =>
-                                                  DropdownMenuItem(
-                                                    value: item["name"],
-                                                    child: Text(item["name"]),
-                                                  ),
-                                            )
-                                            .toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedOrigin = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
+            return ListView(
+              children: [
+                // Name
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Name:"),
+                        trailing: SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            initialValue: widget.data.name,
+                            onChanged: (newValue) {
+                              setState(() {
+                                TagRecord.name = newValue;
+                              });
+                            },
                           ),
-
-                          // Gender
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Gender:"),
-                                  trailing: DropdownButton(
-                                    value: selectedGender,
-                                    items:
-                                        genderConstraints
-                                            .map(
-                                              (Map<String, dynamic> item) =>
-                                                  DropdownMenuItem(
-                                                    value: item["name"],
-                                                    child: Text(item["name"]),
-                                                  ),
-                                            )
-                                            .toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedGender = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Color
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Colors:"),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder:
-                                                (context) => AlertDialog(
-                                                  title: const Text(
-                                                    'Pick a color!',
-                                                  ),
-                                                  content: SingleChildScrollView(
-                                                    child: ColorPicker(
-                                                      pickerColor: pickerColor,
-                                                      onColorChanged: changeColor,
-                                                    ),
-                                                  ),
-                                                  actions: <Widget>[
-                                                    ElevatedButton(
-                                                      child: const Text('Select'),
-                                                      onPressed: () {
-                                                        setState(
-                                                          () =>
-                                                              currentColor =
-                                                                  pickerColor,
-                                                        );
-                                                        Navigator.of(context).pop();
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                          );
-                                        },
-                                        icon: Icon(Icons.color_lens),
-                                      ),
-                                      SizedBox(
-                                        width: 25,
-                                        height: 25,
-                                        child: ColoredBox(color: currentColor, child: Text(""),))
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Personality Type
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text("Personality Type:"),
-                                  trailing: DropdownButton(
-                                    value: selectedPersonalityType,
-                                    items:
-                                        personalityTypeConstraints
-                                            .map(
-                                              (Map<String, dynamic> item) =>
-                                                  DropdownMenuItem(
-                                                    value: item["name"],
-                                                    child: Text(item["name"]),
-                                                  ),
-                                            )
-                                            .toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedPersonalityType =
-                                            value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Submit
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  showWriteAlertDialog(context);
-                                });
-                              },
-                              child: Text("Submit"),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+
+                // Profile picture
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Profile Picture:"),
+                        trailing: SizedBox(
+                          width: 100,
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ImagePickerPage(),
+                                ),
+                              );
+                            },
+                            icon: CircleAvatar(
+                              radius: Style.profilePictureRadius,
+                              foregroundImage: NetworkImage(widget.data.url),
+                            ),
+                          ),
+                          // child: ImagePickerWidget()
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Origin
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Origin:"),
+                        trailing: DropdownButton(
+                          value: selectedOrigin,
+                          items:
+                              originConstraints
+                                  .map(
+                                    (Map<String, dynamic> item) =>
+                                        DropdownMenuItem(
+                                          value: item["name"],
+                                          child: Text(item["name"]),
+                                        ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedOrigin = value.toString();
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Gender
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Gender:"),
+                        trailing: DropdownButton(
+                          value: selectedGender,
+                          items:
+                              genderConstraints
+                                  .map(
+                                    (Map<String, dynamic> item) =>
+                                        DropdownMenuItem(
+                                          value: item["name"],
+                                          child: Text(item["name"]),
+                                        ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value.toString();
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Color
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Colors:"),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: const Text('Pick a color!'),
+                                        content: SingleChildScrollView(
+                                          child: BlockPicker(
+                                            availableColors: availableColors,
+                                            pickerColor: currentColor,
+                                            onColorChanged: changeColor,
+                                            layoutBuilder: (context, colors, child) {
+                                              List<Widget> grid = [];
+                                              for (Map<String, dynamic> value in colorConstraints) {
+                                                Color color = Color(int.parse(value["hex_code"], radix: 16)).withAlpha(255);
+                                                grid.add(Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    child(color),
+                                                    Text(value["name"], textAlign: TextAlign.center)
+                                                  ],
+                                                ));
+                                              }
+
+                                              return SizedBox(
+                                                width: 300,
+                                                height: 400,
+                                                child: GridView.count(
+                                                  crossAxisCount: 3,
+                                                  crossAxisSpacing: 5,
+                                                  mainAxisSpacing: 6,
+                                                  children: grid,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          ElevatedButton(
+                                            child: const Text('Select'),
+                                            onPressed: () {
+                                              setState(
+                                                () =>
+                                                    currentColor = pickerColor,
+                                              );
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                );
+                              },
+                              icon: Icon(Icons.color_lens),
+                            ),
+                            SizedBox(
+                              width: 25,
+                              height: 25,
+                              child: ColoredBox(
+                                color: currentColor,
+                                child: Text(""),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Personality Type
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Personality Type:"),
+                        trailing: DropdownButton(
+                          value: selectedPersonalityType,
+                          items:
+                              personalityTypeConstraints
+                                  .map(
+                                    (Map<String, dynamic> item) =>
+                                        DropdownMenuItem(
+                                          value: item["name"],
+                                          child: Text(item["name"]),
+                                        ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedPersonalityType = value.toString();
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Submit
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        showWriteAlertDialog(context);
+                      });
+                    },
+                    child: Text("Submit"),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
