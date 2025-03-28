@@ -60,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        child: Icon(Icons.edit),
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => NfcWriterWidget(data: widget.profileData)),

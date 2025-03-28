@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plushie_app/database_manager.dart';
 
 class Origin {
   final int id;
@@ -41,6 +42,20 @@ class ProfileData {
   final Gender gender;
   final CustomColor color;
   final PersonalityType personalityType;
+
+  factory ProfileData.empty(var data) {
+    print("DATA: $data");
+
+    return ProfileData(
+        id: data.toString(),
+        name: "name",
+        url: "url",
+        origin: Origin(id: 1000, name: "name", latitude: 0, longitude: 0),
+        gender: Gender(id: 1000, name: "name", symbol: "symbol"),
+        color: CustomColor(id: 1000, name: "name", value: Color(0x00000000)),
+        personalityType: PersonalityType(id: 1000, name: "name", description: "description"),
+    );
+  }
 
   ProfileData({
     required this.id,

@@ -23,11 +23,11 @@ class DatabaseManager {
     return data;
   }
 
-  Future<List<Map<String, dynamic>>> fetchPlushData() async {
-    final url = Uri.parse("$baseUrl/plush");
+  Future<List<Map<String, dynamic>>> fetchPlushData() async => await sendRequest(Uri.parse("$baseUrl/plush"));
+  
+  Future<List<Map<String, dynamic>>> fetchLatestId() async => await sendRequest(Uri.parse("$baseUrl/id")).then((value) => value);
 
-    return await sendRequest(url);
-  }
+  Future<List<Map<String, dynamic>>> getPlaceholder() async => await sendRequest(Uri.parse("$baseUrl/placeholder")).then((value) => value);
 
   Future<Map<String, List<Map<String, dynamic>>>> fetchEditingConstraints() async {
     final url = "$baseUrl/constraints";

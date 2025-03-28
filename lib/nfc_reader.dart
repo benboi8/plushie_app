@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -79,7 +80,9 @@ class _NfcReaderState extends State<NfcReader> {
             }
           toast("A page will open shortly");
           } catch (e) {
-            print(e);
+            if (kDebugMode) {
+              print(e);
+            }
           }
         }
       }

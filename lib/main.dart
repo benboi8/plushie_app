@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:plushie_app/profile_data.dart';
 
+import 'database_manager.dart';
 import 'nfc_reader.dart';
 import 'nfc_writer_widget.dart';
 
@@ -44,6 +46,19 @@ class _HomePageState extends State<HomePage> {
         actions: appBarActions(context)
       ),
       body: NfcReader(),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          int data;
+
+          DatabaseManager().getPlaceholder().then((value) {
+            data = value[0]["id"] + 1;
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => NfcWriterWidget(data: ProfileData.empty(data))),
+            );
+          });
+        },
+      ),
     );
   }
 }
